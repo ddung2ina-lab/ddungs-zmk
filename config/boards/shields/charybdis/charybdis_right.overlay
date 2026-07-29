@@ -5,6 +5,7 @@
  */
  
 #include "charybdis.dtsi"
+#include <zephyr/dt-bindings/input/input-event-codes.h>
 
 &default_transform {
     col-offset = <6>;
@@ -68,9 +69,21 @@
 
 
 / {
+    // Trackball-only scroll scaler: keeps SCROLL_TICK low for smooth
+    // low-speed response, and cuts scroll speed to 1/4 without dropping
+    // partial movement (track-remainders accumulates the leftover).
+    tb_scroll_scaler: tb_scroll_scaler {
+        compatible = "zmk,input-processor-scaler";
+        #input-processor-cells = <2>;
+        type = <INPUT_EV_REL>;
+        codes = <INPUT_REL_WHEEL INPUT_REL_HWHEEL>;
+        track-remainders;
+    };
+
     trackball_listener {
         compatible = "zmk,input-listener";
         device = <&trackball>;
+        input-processors = <&tb_scroll_scaler 1 4>;
     };
 };
 
